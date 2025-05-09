@@ -46,39 +46,57 @@ function applySettings() {
 }
 
 function spinWheel() {
-    if (spinning) return;
-    spinning = true;
-    document.getElementById("winner").classList.remove("show");
-    document.getElementById("winner").textContent = "";
-  
-    const total = max - min + 1;
-    const winnerNumber = Math.floor(Math.random() * total) + min;
-    const winnerIndex = winnerNumber - min;
-    const sliceAngle = 360 / total;
-    const angle_middle = sliceAngle * (winnerIndex + 0.5) + 1.023; // Добавляем смещение
-    const target_angle = 270;
-    const totalRotation = 360 * 10;
-    const stopAngle = totalRotation + (target_angle - angle_middle);
-  
-    currentRotation += stopAngle;
-    canvas.style.transition = "transform 5s cubic-bezier(0.33, 1, 0.68, 1)";
-    canvas.style.transform = `rotate(${currentRotation}deg)`;
-  
+  if (spinning) return;
+  spinning = true;
+  document.getElementById("winner").classList.remove("show");
+  document.getElementById("winner").textContent = "";
+
+  const total = max - min + 1;
+  const winnerNumber = Math.floor(Math.random() * total) + min;
+  const winnerIndex = winnerNumber - min;
+  const sliceAngle = 360 / total;
+  const angle_middle = sliceAngle * (winnerIndex + 0.5) + 1.023; // Добавляем смещение
+  const target_angle = 270;
+  const totalRotation = 360 * 10;
+  const stopAngle = totalRotation + (target_angle - angle_middle);
+
+  currentRotation += stopAngle;
+  canvas.style.transition = "transform 5s cubic-bezier(0.33, 1, 0.68, 1)";
+  canvas.style.transform = `rotate(${currentRotation}deg)`;
+
+  setTimeout(() => {
+    const finalAngle = ((currentRotation % 360) + 360) % 360;
+    const adjustedIndex = Math.floor(
+      ((270 - finalAngle + 360) % 360) / sliceAngle
+    );
+    const correctedWinner = min + ((adjustedIndex + total - 1) % total);
+
+    const winnerElement = document.getElementById("winner");
+    winnerElement.textContent = `ПОБЕДИТЕЛЬ: №${correctedWinner}`;
+
+    // Запускаем анимацию
+    winnerElement.classList.add("show");
+
+    // Усиленный эффект конфетти
+    confetti({
+      particleCount: 500,
+      spread: 180,
+      origin: { y: 0.6 },
+      colors: ["#ff0000", "#00ff00", "#0000ff", "#ffff00"],
+      shapes: ["circle", "square"],
+      gravity: 1.5,
+      scalar: 1.2,
+      ticks: 300,
+    });
+
+    // Добавляем вибрацию после основной анимации
     setTimeout(() => {
-      // Определяем окончательный номер, учитывая смещение
-      const finalAngle = (currentRotation % 360 + 360) % 360;
-      const adjustedIndex = Math.floor(((270 - finalAngle + 360) % 360) / sliceAngle);
-      const correctedWinner = min + ((adjustedIndex + total - 1) % total); // Корректировка для точности
-      document.getElementById("winner").textContent = `Победитель: №${correctedWinner}`;
-      document.getElementById("winner").classList.add("show");
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 },
-      });
-      spinning = false;
-    }, 5200);
-  }
+      winnerElement.style.animation = "textVibration 1s ease-in-out infinite";
+    }, 2000);
+
+    spinning = false;
+  }, 5200);
+}
 
 // Первая отрисовка при загрузке
 drawWheel();
